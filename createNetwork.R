@@ -1,3 +1,0 @@
-### Network creation
-library(igraph)
-

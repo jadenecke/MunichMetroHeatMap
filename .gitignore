@@ -1,0 +1,12 @@
+#data folder:
+/mvv/*
+/mvg/*
+/sdb/*
+
+#R Project Files:
+.Rhistory
+/.Rproj.user/*
+
+
+#RData files
+*.RData

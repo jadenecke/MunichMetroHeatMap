@@ -9,24 +9,11 @@ library(jsonlite)
 source("OSM_Functions.R")
 
 
-neuperlachSued <- read.csv(file.path("queryRasterData", "de_09162_1010_08_00_00_0.004", "data.txt"), header = TRUE)
-# neuperlachSued$travelTime_old <- neuperlachSued$travelTime
-# neuperlachSued$travelTime <- pmin(neuperlachSued$travelTime, 3600)
-
-groshadern <- read.csv(file.path("queryRasterData", "de_09162_1540_08_00_00_0.004", "data.txt"), header = TRUE)
-# groshadern$travelTime_old <- groshadern$travelTime
-# groshadern$travelTime <- pmin(groshadern$travelTime, 3600)
-
-ng <- neuperlachSued
-ng$travelTime <- rowMeans(cbind(neuperlachSued$travelTime, groshadern$travelTime))
-ng$travelTime_old <- ng$travelTime
-ng$travelTime <- pmin(ng$travelTime, 3600)
-
 #München
 folder <- "mapDataSmall"
-
 xRange <- c(11.3794, 11.7690)
 yRange <- c(48.0473, 48.2336)
+
 attrList <- list(
   list(name = "small_streets", key = "highway", value = c("residential", "living_street"), split = TRUE),
   list(name = "med_streets", key = "highway", value = c("secondary", "tertiary", "secondary_link", "tertiary_link"), split = TRUE),
@@ -49,23 +36,6 @@ fetchDataSplitedToDisk(coord, attrList, limit = 10, splits = 4, folder)
 dl <- readDataFromDisk(folder, attrList)
 size <- 7559 #do not change this, change factor! #32x32 600dpi
 factor <- .2
-
-
-source("OSM_Functions.R")
-plotMap(li = dl,
-        heatMapData = ng,
-        xRange = xRange,
-        yRange = yRange,
-        cityName = "München",
-        colorList = colorList,
-        white = FALSE,
-        size = size,
-        yDim = 40,
-        xDim = 60,
-        degStep = .02,
-        natureReserve = FALSE,
-        factor = factor,
-        folder = "maps")
 
 
 queryRoute <- function(lat, lon, destStationID, startTime){
@@ -97,12 +67,6 @@ queryRoute <- function(lat, lon, destStationID, startTime){
     ))
 }
 
-#test <- queryRoute(48.1537, 11.5363, "de:09162:1320", timeStringToAPIformat("09:00:00"))
-
-# start 48.14878178145521, 11.554391673475704
-# lat dist 500m 48.148839444191154, 11.561043974821326
-# lon dist 500m 48.15330611419909, 11.554390728561415
-# result = 0.0045
 
 timeStringToAPIformat <- function(t, wd = 1){
   if(wd < 1 | wd > 7 ) stop("wd must be between 1 - 7")
@@ -221,30 +185,42 @@ queryRaster <- function(coord, dist, destStationID, startTime, pauseTime){
   return(df)
 }
 
-
-neuperlachSued <- queryRaster(coord,
-                      dist = 0.0040,
-                      destStationID = "de:09162:1010",
-                      startTime = timeStringToAPIformat("08:00:00", 1),
-                      pauseTime = 1)
-
-grosshadern <- queryRaster(coord,
-                           dist = 0.0040,
-                           destStationID = "de:09162:1540",
-                           startTime = timeStringToAPIformat("08:00:00", 1),
-                           pauseTime = 1)
-
-
 checkIfContainsTaxi <- function(l){
   if(length(l[["connectionPartList"]]) == 0){return(FALSE)}
   el <-  lapply(l[["connectionPartList"]], \(pl){
     return(pl[["product"]] == "TAXI")
   })
-  if(sum(unlist(el)) > 0){print("FOUND TAXI!!!!")}
   return(sum(unlist(el)) > 0)
 }
 
-neuperlachSued$travelTimeCapped <- pmin(neuperlachSued$travelTime, 3600)
+
+neuperlachSued <- queryRaster(coord,
+                      dist = 0.0040,
+                      destStationID = "de:09162:1010", #strings need to be queried or taken from the GTFS stops list
+                      startTime = timeStringToAPIformat("08:00:00", wd = 1), #wd = weekday (1 [monday] - 7 [sunday])
+                      pauseTime = 4) #pause in seconds with a random normal jitter, please be kind to the api
+
+grosshadern <- queryRaster(coord,
+                           dist = 0.0040,
+                           destStationID = "de:09162:1540",
+                           startTime = timeStringToAPIformat("08:00:00", wd = 1),
+                           pauseTime = 4) 
+
+
+
+
+neuperlachSued <- read.csv(file.path("queryRasterData", "de_09162_1010_08_00_00_0.004", "data.txt"), header = TRUE)
+# neuperlachSued$travelTime_old <- neuperlachSued$travelTime
+# neuperlachSued$travelTime <- pmin(neuperlachSued$travelTime, 3600) #capping travel time to 60 mins 
+
+groshadern <- read.csv(file.path("queryRasterData", "de_09162_1540_08_00_00_0.004", "data.txt"), header = TRUE)
+# groshadern$travelTime_old <- groshadern$travelTime
+# groshadern$travelTime <- pmin(groshadern$travelTime, 3600) #capping travel time to 60 mins 
+
+ng <- neuperlachSued
+ng$travelTime <- rowMeans(cbind(neuperlachSued$travelTime, groshadern$travelTime))
+ng$travelTime_old <- ng$travelTime
+ng$travelTime <- pmin(ng$travelTime, 3600)
 
 ggplot()+
   geom_raster(data = neuperlachSued,
@@ -255,3 +231,19 @@ ggplot()+
               interpolate = TRUE
   )+
   scale_fill_distiller(palette = "Spectral")
+
+
+plotMap(li = dl,
+        heatMapData = ng,
+        xRange = xRange,
+        yRange = yRange,
+        cityName = "München",
+        colorList = colorList,
+        white = FALSE,
+        size = size,
+        yDim = 40,
+        xDim = 60,
+        degStep = .02,
+        natureReserve = FALSE,
+        factor = factor,
+        folder = "maps")

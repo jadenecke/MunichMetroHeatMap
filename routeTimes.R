@@ -26,7 +26,27 @@ stopTimes <- rbind.data.frame(mvv_stopTimes[, stopTimes_bothNames],
                               mvg_stopTimes[, stopTimes_bothNames])
 rm("mvv_stopTimes", "mvg_stopTimes")
 
-route_id <-  "1-U2-G-012-1"
-routeTrips <- trips[trips$route_id == route_id,]
+routeTimes_getStopsInRoute <- function(route_ids){
+  trip_ids <- trips$trip_id[trips$route_id %in% route_ids]
+  stop_ids <- unique(stopTimes$stop_id[stopTimes$trip_id %in% trip_ids])
+  return(unique(stops_IDtoParentID(stop_ids)))
+}
 
 
+routeTimes_getConnectedStops <- function(stop_id){
+  tripIDS <- stopTimes$trip_id[stops_IDtoParentID(stopTimes$stop_id) == stops_IDtoParentID(stop_id)]
+  tripIDS <- unique(tripIDS)
+  #uniqueRoutes <- unique(trips$route_id[trips$trip_id %in% trip_ids])
+  connectedStops <- list()
+  for(tripID in tripIDS){
+    stopEvent <- stopTimes[stopTimes$trip_id == tripID & stopTimes$stop_id == stop_id, ]
+    stopTimes_workingSet <- stopTimes[stopTimes$trip_id == tripID,]
+    
+  }
+}
+
+
+
+
+###########################
+sdb_stopTimes <- read.csv(file.path("sdb", "stop_times.txt"))

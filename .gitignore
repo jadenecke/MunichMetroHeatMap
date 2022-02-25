@@ -2,6 +2,12 @@
 /mvv/*
 /mvg/*
 /sdb/*
+/combinedData/*
+/sbahn_Subset/*
+/mapData/*
+/mapDataSmall/*
+/maps/*
+/queryRasterData/*
 
 #R Project Files:
 .Rhistory
@@ -10,3 +16,4 @@
 
 #RData files
 *.RData
+.Rproj.user

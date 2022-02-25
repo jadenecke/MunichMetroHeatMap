@@ -195,7 +195,7 @@ checkIfContainsTaxi <- function(l){
 
 
 neuperlachSued <- queryRaster(coord,
-                      dist = 0.0040,
+                      dist = 0.0040, #distance between points (ca. 500 m)
                       destStationID = "de:09162:1010", #strings need to be queried or taken from the GTFS stops list
                       startTime = timeStringToAPIformat("08:00:00", wd = 1), #wd = weekday (1 [monday] - 7 [sunday])
                       pauseTime = 4) #pause in seconds with a random normal jitter, please be kind to the api

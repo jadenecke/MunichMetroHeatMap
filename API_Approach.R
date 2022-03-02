@@ -9,7 +9,7 @@ library(jsonlite)
 source("OSM_Functions.R")
 
 
-#München
+#München Stadt
 folder <- "mapDataSmall"
 xRange <- c(11.3794, 11.7690)
 yRange <- c(48.0473, 48.2336)
